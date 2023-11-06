@@ -19,15 +19,14 @@ mycursor = mycon.cursor()
 init()
 class Cbt:
     def __init__(self):
-        # self.reg()
         self.reg()
+        self.inq()
     def reg(self):
         self.numOfStud = []
         self.numberOfStudents = int(input("number of candidate(s): "))
         self.number = 1
         
         for val in range(self.numberOfStudents):
-          #   if val == self.numberOfStudents:
           print(f'CANDIDATE  NUMBER ({self.number}) IS REQUIRED TO FILL THIS, THANK YOU.')
           self.lastName = input("last name: ")
           self.firstName = input("first name: ")
@@ -46,8 +45,6 @@ class Cbt:
           print(self.name)
           self.que()
           self.number +=1 
-     #    else:
-     #      print('Hey!!!')
    
 
     def que(self):
@@ -57,9 +54,9 @@ class Cbt:
                mycursor.execute(query, val)
                mycon.commit()
          except:
-          print(Fore.RED+"Natric Number or Username already exits!"+Style.RESET_ALL)  
+               print(Fore.RED+"Natric Number or Username already exits!"+Style.RESET_ALL)  
          else:
-               self.inq()
+              pass
              
                
 
@@ -75,35 +72,42 @@ class Cbt:
 
 
     def login(self):
-         self.user = input('Username: ')
-         self.matric_no = input("Matric Number: ")  
-         query = 'SELECT * FROM cbt_table WHERE matric_no=%s AND user_name=%s'
-         val = (self.matric_no, self.user)
-         mycursor.execute(query, val)
-         details = mycursor.fetchall()
-         if details:
-          #     last_name = details[0][1]
-          #     first_name = details[0][2]
-          #     other_names = details[0][3]
-              user = details[0][4]
-              matric_no = details[0][7]
-              pwd = details[0][10]
-              score = details[0][8]
-              if self.user == user:
-               print(f"""
-                    WELCOME TO THIS COMPUTER BASED TEST CANDIDTE NUMBEER: {self.number}
-                    Hi {user}
-                    
-                    MATRIC NUMBER: {matric_no}
-               """)
-               self.check_pass()
-               # self.question()    
-              else:
-                print(Fore.RED+'Invalid Username!'+Style.RESET_ALL)
-                self.login()
-         else:
-                   print(Fore.RED+'Invalid Input!'+Style.RESET_ALL)
-                   self.login()            
+         num = 1
+         for i in range(self.numberOfStudents):
+          print(f"""
+                   CANDIDATE  NUMBER ({num}) IS REQUIRED TO LOGIN
+                   THANK YOU.       
+          """)
+          num +=1 
+          self.user = input(f'Username: ')
+          self.matric_no = input(f"Matric Number: ")  
+          query = 'SELECT * FROM cbt_table WHERE matric_no=%s AND user_name=%s'
+          val = (self.matric_no, self.user)
+          mycursor.execute(query, val)
+          details = mycursor.fetchall()
+          if details:
+               self.last_name = details[0][1]
+               self.first_name = details[0][2]
+               self.other_names = details[0][3]
+               user = details[0][4]
+               matric_no = details[0][7]
+               pwd = details[0][10]
+               score = details[0][8]
+               if self.user == user:
+                    print(f"""
+                         WELCOME TO THIS COMPUTER BASED TEST CANDIDTE NUMBEER: {self.number}
+                         Hi {user}
+                         
+                         MATRIC NUMBER: {matric_no}
+                    """)
+                    self.check_pass()
+                    self.question()   
+               else:
+                    print(Fore.RED+'Invalid Username!'+Style.RESET_ALL)
+                    self.login()
+          else:
+                    print(Fore.RED+'Invalid Input!'+Style.RESET_ALL)
+                    self.login()            
     def check_pass(self):
           self.passWord()
           pwd = pw.pwinput("Password: ") 
@@ -127,8 +131,8 @@ class Cbt:
     def passWord(self):
             alpha = "abcdefghijklmnopqrstuvwxyz"
             upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-            num = "1234567890"
-            sign = "!@#$%&*_-"
+            num = "123456789"
+            sign = "!@#$%&()/?{]{].,'_-"
 
             length = 6
 
@@ -175,7 +179,41 @@ class Cbt:
                     pass
          else:
                print(Fore.RED+'Invalid Input!'+Style.RESET_ALL) 
-               self.check_password()             
+               self.check_password() 
+
+    def question(self):
+            print('Fetching questions...')
+            time.sleep(2)
+            questions = {'TRUE':'Asiwaju Bola Ahmed Tinubu is the president of Nigeria.  True or False?',
+                        'ABUJA':'Capital of Nigeria is?', 
+                        'OYO':'Which state is Ibadan located?',
+                        'B':'Which type of case is WORD? a.) Lower b.) Upper c.) Sentence d.) toggle', 
+                        'SEYI MAKINDE':'Who is the governor of Oyo State?',
+                        'IBADAN':'What is the largest city in west africa?',
+                        'FRANCE':'Which country has its capital to be Paris?',
+                        '6':'How many geo-political zones are in Nigeria?',
+                        'UNITED STATES DOLLAR':'What is the full meaning of usD?',
+                        'HEN AND RAM':'As bullock is for bull, capoon and weather(sheep) is for ______ and _______'
+            }
+            listing = 1
+            mark = 0
+            for answer, quest in questions.items():
+                print('\nplease wait...') 
+                time.sleep(1) 
+                print(f'\n{listing}.) {quest}\n')
+                
+                listing +=1
+                inp = input("Answer: ")
+                if inp.upper().strip() == answer:
+                    mark +=1
+                     
+            print('please wait...') 
+            time.sleep(2)      
+            self.mark = f'{mark} of {listing}'
+            self.percentage = (mark/(listing -1))*100 
+            # print(f'You obtained {(mark)} of {listing -1}')
+            print(f'\nDear {self.last_name} {self.first_name} {self.other_names}, you obtained {(mark)} of {listing -1}\n')                      
+            self.upd()
 
     def upd(self):
             myquery = 'UPDATE cbt_table SET score=%s, percentage=%s WHERE matric_no=%s'
@@ -183,4 +221,5 @@ class Cbt:
             mycursor.execute(myquery, val)
             mycon.commit()   
 
+# {self.last_name} {self.first_name} {self.other_names}
 cbt = Cbt()
