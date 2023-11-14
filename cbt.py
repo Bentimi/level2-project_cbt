@@ -1,9 +1,12 @@
 import mysql.connector as sql
 import time
 import sys
-from colorama import init, Fore, Style
+from colorama import init, Fore, Style, Back
 import pwinput as pw
 import random
+import re
+import termtables as tt
+
 
 mycon = sql.connect(host = '127.0.0.1', user = 'root', passwd = '', database = 'cbt_db')
 mycursor = mycon.cursor()
@@ -19,8 +22,69 @@ mycursor = mycon.cursor()
 init()
 class Cbt:
     def __init__(self):
-        self.reg()
-        self.inq()
+        self.access()
+
+    def access(self):
+         print(f'''
+                    Select one of the options:
+                    1. Examiner
+                    2. Student
+                    0. Exit
+          ''')
+         var = input('Select: ')
+         if var == '1':
+              self.admin()
+         elif var == '2':
+              self.intro()
+         elif var == '0':
+              print(Fore.RED+'Exit'+Style.RESET_ALL)
+              sys.exit()
+         else:
+              print(Fore.YELLOW+'Invalid Input!'+Style.RESET_ALL)
+              self.access()
+
+    def admin(self):
+          self.level = input("Level: ")
+          self.course = input('Course: ')  
+          query = "SELECT * FROM cbt_table WHERE level=%s AND course=%s"
+          val = (self.level, self.course)
+          mycursor.execute(query,val)
+          output = mycursor.fetchall()
+          if output:
+               self.course = output[0][6]
+               self.level = output[0][5]
+               quer = 'SELECT matric_no, lastname, firstname, middlename, score, course FROM cbt_table WHERE level=%s AND course=%s'
+               var = (self.level, self.course)
+               mycursor.execute(quer, var)
+               rows = mycursor.fetchall()
+               header = ['matric_no', 'lastname', 'firstname', 'middlename', 'score','course']
+               
+               print(Fore.YELLOW+"Loading..."+Style.RESET_ALL)
+               time.sleep(2)
+               tt.print(rows,header)
+               self.max_min_score()
+          else:
+               print(Fore.RED+'Invalid Input!'+Style.RESET_ALL)
+               print(Fore.RED+'Try Again!'+Style.RESET_ALL)
+               self.admin()            
+     
+    def max_min_score(self):
+         quer = 'SELECT MAX(score), MIN(score), course FROM cbt_table WHERE level=%s AND course=%s'
+         var = (self.level, self.course)
+         mycursor.execute(quer, var)
+               
+         print(f'''
+                    THE MAXIMUM AND MINIMUM SCORES ARE FOUND THE TABLE BELLOW:
+          ''')      
+         rows = mycursor.fetchall()
+         header = ['MAX(score)', 'MIN(score)', 'course']
+         tt.print(rows,header)
+         self.another_trial()
+
+    def intro(self):
+          self.reg()
+          self.inq()
+
     def reg(self):
         self.numOfStud = []
         self.numberOfStudents = int(input("number of candidate(s): "))
@@ -32,8 +96,8 @@ class Cbt:
           self.firstName = input("first name: ")
           self.middleName = input("middle name: ")
           self.user = input('Username: ')
-          self.matric_no = int(input("matric number: "))
-          self.level = int(input("level: "))
+          self.matric()
+          self.lvl()
           self.course = input("course: ")
           self.per = 0.0
           self.score = 0
@@ -58,9 +122,6 @@ class Cbt:
          else:
               pass
              
-               
-
-
     def inq(self):
             print('Press ENTER to take the test or 0 to TERMINATE')
             user = input('Select: ')
@@ -70,6 +131,23 @@ class Cbt:
             else:          
                self.login()
 
+    def matric(self):
+         self.matric_no = input("Matric Number: ")
+         if re.match(r'^\d+$', self.matric_no):
+              pass
+         else:
+              time.sleep(1)
+              print(Fore.RED+"Matric number must be digit only"+Style.RESET_ALL)
+              self.matric() 
+
+    def lvl(self):
+         self.level = input("Level: ")
+         if re.match(r'^\d+$', self.level):
+              pass
+         else:
+              time.sleep(1)
+              print(Fore.RED+"Must be digit only"+Style.RESET_ALL)
+              self.lvl() 
 
     def login(self):
          num = 1
@@ -107,7 +185,8 @@ class Cbt:
                     self.login()
           else:
                     print(Fore.RED+'Invalid Input!'+Style.RESET_ALL)
-                    self.login()            
+                    self.login() 
+
     def check_pass(self):
           self.passWord()
           pwd = pw.pwinput("Password: ") 
@@ -126,8 +205,6 @@ class Cbt:
                print(Fore.RED+'Invalid'+Style.RESET_ALL)
                self.check_pass()
                   
-
-    
     def passWord(self):
             alpha = "abcdefghijklmnopqrstuvwxyz"
             upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -152,13 +229,11 @@ class Cbt:
                 val = (self.gen_pass, self.matric_no)
                 mycursor.execute(query, val) 
                 mycon.commit()
-            
-                     
+                   
             print(f"""
                     Hi {user}, your one time password is {self.gen_pass}
             """)
            
-
     def check_password(self):
          self.matric_no = input('Matric Number: ')
          password = pw.pwinput("Password: ")
@@ -171,8 +246,6 @@ class Cbt:
               self.gen_pass = details[0][9]
               
               if self.gen_pass != password:
-               #  self.question()
-
                 print(Fore.RED+'Wrong Password!'+Style.RESET_ALL)
                 self.check_password()
               else:
@@ -211,7 +284,6 @@ class Cbt:
             time.sleep(2)      
             self.mark = f'{mark} of {listing}'
             self.percentage = (mark/(listing -1))*100 
-            # print(f'You obtained {(mark)} of {listing -1}')
             print(f'\nDear {self.last_name} {self.first_name} {self.other_names}, you obtained {(mark)} of {listing -1}\n')                      
             self.upd()
 
@@ -221,5 +293,16 @@ class Cbt:
             mycursor.execute(myquery, val)
             mycon.commit()   
 
-# {self.last_name} {self.first_name} {self.other_names}
+    def another_trial(self):
+         print('Press'+Fore.GREEN+' 1 '+Style.RESET_ALL+'to fetch another data or',Fore.GREEN+'0'+Style.RESET_ALL+' to Terminate')
+
+         user = input('Select: ')
+         if user == '1':
+              self.admin()
+         elif user == '0':
+              print(Fore.RED+'Terminated!'+Style.RESET_ALL)
+              sys.exit()   
+         else:
+              print(Fore.YELLOW+'Invalid Input!'+Style.RESET_ALL)        
+
 cbt = Cbt()
