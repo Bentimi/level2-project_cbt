@@ -32,11 +32,11 @@ class Cbt:
                     0. Exit
           ''')
          var = input('Select: ')
-         if var == '1':
+         if var.strip() == '1':
               self.admin()
-         elif var == '2':
+         elif var.strip() == '2':
               self.intro()
-         elif var == '0':
+         elif var.strip() == '0':
               print(Fore.RED+'Exit'+Style.RESET_ALL)
               sys.exit()
          else:
